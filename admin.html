@@ -1,0 +1,204 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>Administración del registro · Hospital Distrital de Laredo</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=Public+Sans:wght@400;500;600;700&display=swap">
+<style>
+/* Layout: acceso con clave; luego barra de herramientas y tabla imprimible en el formato de la hoja de firmas */
+:root {
+  --paper: #f6f5f9; --surface: #fff; --ink: #1c1830; --muted: #63607a; --line: #dcd8e6;
+  --plum: #5c2a78; --plum-dark: #431d5a; --rose: #e0809f; --tint: #ece8f4; --ok: #167a45; --bad: #b3261e;
+  --display: "Bricolage Grotesque", "Segoe UI", Arial, sans-serif;
+  --body: "Public Sans", "Segoe UI", Arial, sans-serif;
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--paper); color: var(--ink); font: 400 16px/1.5 var(--body); }
+.wrap { width: min(1100px, 100% - 32px); margin-inline: auto; }
+.top { background: var(--plum-dark); color: #fff; }
+.top .wrap { display: flex; flex-wrap: wrap; gap: 6px 24px; padding-block: 12px; font-size: .9rem; justify-content: space-between; }
+.top span { color: #d9cbe6; }
+h1 { font: 800 clamp(1.7rem, 5vw, 2.4rem)/1.1 var(--display); color: var(--plum-dark); margin: 32px 0 16px; letter-spacing: -.02em; }
+:focus-visible { outline: 3px solid var(--rose); outline-offset: 2px; }
+input[type="password"], input[type="search"] { font: inherit; padding: 12px 14px; border: 1.5px solid var(--line); border-radius: 6px; background: var(--surface); color: var(--ink); }
+.btn { font: 700 .95rem var(--body); background: var(--plum); color: #fff; border: 0; border-radius: 6px; padding: 12px 22px; cursor: pointer; }
+.btn:hover:not(:disabled) { background: var(--plum-dark); }
+.btn:disabled { opacity: .55; cursor: not-allowed; }
+.btn.alt { background: var(--surface); color: var(--plum-dark); border: 1.5px solid var(--line); }
+.btn.alt:hover { background: var(--tint); }
+.err { color: var(--bad); font-weight: 600; min-height: 1.4em; margin: 10px 0 0; }
+
+#gate { max-width: 420px; }
+#gate label { display: block; font-weight: 600; margin-bottom: 6px; }
+#gate .row { display: flex; gap: 10px; }
+#gate input { flex: 1; min-width: 0; }
+
+#panel { display: none; padding-bottom: 56px; }
+#panel.show { display: block; }
+.bar { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin-bottom: 14px; }
+.bar input { flex: 1 1 220px; }
+.bar .n { color: var(--muted); font-size: .92rem; margin-left: auto; }
+
+.tw { overflow-x: auto; background: var(--surface); border: 1px solid var(--line); border-radius: 6px; }
+table { width: 100%; border-collapse: collapse; font-size: .92rem; }
+th, td { border: 1px solid var(--line); padding: 8px 10px; text-align: left; vertical-align: middle; }
+th { background: var(--tint); font-size: .78rem; text-transform: uppercase; letter-spacing: .03em; color: var(--plum-dark); }
+td.c, th.c { text-align: center; }
+td.sig { width: 150px; height: 56px; padding: 4px; text-align: center; }
+td.sig img { max-width: 140px; max-height: 52px; display: inline-block; }
+td.sig .no { color: #a39db8; font-size: .8rem; }
+.del { background: none; border: 0; color: var(--bad); font: 600 .85rem var(--body); cursor: pointer; text-decoration: underline; }
+.empty { padding: 24px; text-align: center; color: var(--muted); }
+.ph { display: none; }
+
+@media print {
+  body { background: #fff; }
+  .top, h1.screen, #gate, .bar, .noprint, .del-col { display: none !important; }
+  .ph { display: block; font: 700 14pt var(--body); margin: 0 0 10px; }
+  .tw { border: 0; overflow: visible; }
+  table { font-size: 10pt; }
+  th, td { border: 1px solid #000; }
+  th { background: #fff; color: #000; }
+  tr { break-inside: avoid; }
+  td.sig img { max-height: 44px; }
+}
+</style>
+</head>
+<body>
+
+<div class="top"><div class="wrap noprint">
+  <b>Hospital Distrital de Laredo</b>
+  <span>Administración · Registro de personal</span>
+</div></div>
+
+<main class="wrap">
+  <h1 class="screen">Registro de personal</h1>
+
+  <form id="gate">
+    <label for="clave">Clave de acceso</label>
+    <div class="row">
+      <input type="password" id="clave" autocomplete="current-password" required>
+      <button class="btn" id="enter" type="submit">Entrar</button>
+    </div>
+    <p class="err" id="gerr" role="alert"></p>
+  </form>
+
+  <section id="panel">
+    <div class="bar noprint">
+      <input type="search" id="q" placeholder="Buscar por nombre, DNI o servicio" aria-label="Buscar">
+      <button class="btn alt" id="reload" type="button">Actualizar</button>
+      <button class="btn alt" id="csv" type="button">Descargar CSV</button>
+      <button class="btn" id="print" type="button">Imprimir</button>
+      <span class="n" id="n"></span>
+    </div>
+    <p class="err noprint" id="perr" role="alert"></p>
+    <p class="ph">Hospital Distrital de Laredo · Servicio de Ginecología y Obstetricia · Registro de personal</p>
+    <div class="tw">
+      <table>
+        <thead><tr>
+          <th class="c">N.°</th><th>Apellidos y nombres</th><th class="c">DNI</th>
+          <th>Condición laboral</th><th>Servicio</th><th class="c">Firma</th><th class="del-col"></th>
+        </tr></thead>
+        <tbody id="rows"></tbody>
+      </table>
+    </div>
+  </section>
+</main>
+
+<script>
+(function () {
+  var URL_API = "https://fxuugixmaelscnetjjhj.supabase.co/rest/v1/rpc/";
+  var KEY = "sb_publishable_yqXtmyopzFg9jLdFXnGVFg_7DpZdFME";
+  var $ = function (id) { return document.getElementById(id); };
+  var clave = "", data = [];
+
+  function rpc(fn, body) {
+    return fetch(URL_API + fn, {
+      method: "POST",
+      headers: { "apikey": KEY, "Authorization": "Bearer " + KEY, "Content-Type": "application/json" },
+      body: JSON.stringify(body || {})
+    }).then(function (r) {
+      if (!r.ok) return r.json().catch(function () { return {}; }).then(function (j) {
+        var e = new Error(j.message || "Error " + r.status); e.auth = (j.code === "28000"); throw e;
+      });
+      return r.text().then(function (t) { return t ? JSON.parse(t) : null; });
+    });
+  }
+
+  function td(txt, cls) { var c = document.createElement("td"); if (cls) c.className = cls; c.textContent = txt; return c; }
+
+  function draw() {
+    var q = $("q").value.toLowerCase().trim();
+    var rows = data.filter(function (r) {
+      return !q || (r.nombre + " " + r.dni + " " + r.servicio + " " + r.condicion).toLowerCase().indexOf(q) >= 0;
+    });
+    var tb = $("rows"); tb.textContent = "";
+    if (!rows.length) {
+      var tr0 = document.createElement("tr"), c0 = td(data.length ? "Sin resultados." : "Todavía no hay registros.", "empty");
+      c0.colSpan = 7; tr0.appendChild(c0); tb.appendChild(tr0);
+    }
+    rows.forEach(function (r, i) {
+      var tr = document.createElement("tr");
+      tr.appendChild(td(String(i + 1), "c"));
+      tr.appendChild(td(r.nombre));
+      tr.appendChild(td(r.dni, "c"));
+      tr.appendChild(td(r.condicion));
+      tr.appendChild(td(r.servicio));
+      var s = document.createElement("td"); s.className = "sig";
+      if (r.firma) { var im = document.createElement("img"); im.src = r.firma; im.alt = "Firma de " + r.nombre; s.appendChild(im); }
+      else { var sp = document.createElement("span"); sp.className = "no"; sp.textContent = "Sin firma"; s.appendChild(sp); }
+      tr.appendChild(s);
+      var d = document.createElement("td"); d.className = "del-col";
+      var b = document.createElement("button"); b.type = "button"; b.className = "del"; b.textContent = "Eliminar";
+      b.addEventListener("click", function () { quitar(r); });
+      d.appendChild(b); tr.appendChild(d);
+      tb.appendChild(tr);
+    });
+    var con = data.filter(function (r) { return r.firma; }).length;
+    $("n").textContent = data.length + " registrados · " + con + " con firma";
+  }
+
+  function load() {
+    $("perr").textContent = "";
+    return rpc("lista_registro", { p_clave: clave }).then(function (rows) { data = rows || []; draw(); });
+  }
+
+  $("gate").addEventListener("submit", function (e) {
+    e.preventDefault();
+    clave = $("clave").value; $("gerr").textContent = ""; $("enter").disabled = true;
+    load().then(function () {
+      $("gate").style.display = "none"; $("panel").classList.add("show"); $("clave").value = "";
+    }).catch(function (err) {
+      clave = "";
+      $("gerr").textContent = err.auth ? "Clave incorrecta." : "No se pudo conectar. Inténtalo de nuevo.";
+    }).then(function () { $("enter").disabled = false; });
+  });
+
+  $("q").addEventListener("input", draw);
+  $("reload").addEventListener("click", function () { load().catch(function () { $("perr").textContent = "No se pudo actualizar."; }); });
+  $("print").addEventListener("click", function () { window.print(); });
+
+  function quitar(r) {
+    if (!window.confirm("¿Eliminar el registro de " + r.nombre + " (DNI " + r.dni + ")? No se puede deshacer.")) return;
+    rpc("eliminar_registro", { p_clave: clave, p_dni: r.dni }).then(load)
+      .catch(function () { $("perr").textContent = "No se pudo eliminar."; });
+  }
+
+  $("csv").addEventListener("click", function () {
+    function q(v) { v = String(v == null ? "" : v); if (/^[=+\-@]/.test(v)) v = "'" + v; return '"' + v.replace(/"/g, '""') + '"'; }
+    var lines = ["N.°,Apellidos y nombres,DNI,Condición laboral,Servicio,Firma"];
+    data.forEach(function (r, i) {
+      lines.push([i + 1, q(r.nombre), q(r.dni), q(r.condicion), q(r.servicio), r.firma ? "Con firma" : "Sin firma"].join(","));
+    });
+    var a = document.createElement("a");
+    a.href = URL.createObjectURL(new Blob(["﻿" + lines.join("\r\n")], { type: "text/csv;charset=utf-8" }));
+    a.download = "registro-personal.csv"; document.body.appendChild(a); a.click(); a.remove();
+  });
+})();
+</script>
+</body>
+</html>

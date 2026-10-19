@@ -1,0 +1,284 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Registro de personal · Ginecología y Obstetricia · Hospital Distrital de Laredo</title>
+<meta name="description" content="Registra tu DNI, nombre, condición laboral y servicio. La firma es opcional.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=Public+Sans:wght@400;500;600;700&display=swap">
+<style>
+/* Layout: cabecera, formulario en tres pasos (datos, firma opcional, guardar) */
+:root {
+  --paper: #f6f5f9;
+  --surface: #ffffff;
+  --ink: #1c1830;
+  --muted: #63607a;
+  --line: #dcd8e6;
+  --plum: #5c2a78;
+  --plum-dark: #431d5a;
+  --rose: #e0809f;
+  --tint: #ece8f4;
+  --ok: #167a45;
+  --bad: #b3261e;
+  --display: "Bricolage Grotesque", "Segoe UI", Arial, sans-serif;
+  --body: "Public Sans", "Segoe UI", Arial, sans-serif;
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--paper); color: var(--ink); font: 400 16px/1.55 var(--body); }
+.wrap { width: min(760px, 100% - 32px); margin-inline: auto; }
+
+.top { background: var(--plum-dark); color: #fff; }
+.top .wrap { display: flex; flex-wrap: wrap; gap: 6px 24px; padding-block: 12px; font-size: .9rem; justify-content: space-between; }
+.top b { font-weight: 600; }
+.top span { color: #d9cbe6; }
+.hero { padding-block: 40px 24px; }
+h1 { font: 800 clamp(2rem, 6vw, 3rem)/1.05 var(--display); letter-spacing: -.02em; margin: 0 0 12px; color: var(--plum-dark); text-wrap: balance; }
+.hero p { margin: 0; max-width: 56ch; color: var(--muted); font-size: 1.05rem; }
+
+.step { padding-block: 26px; border-top: 1px solid var(--line); display: grid; grid-template-columns: 56px minmax(0, 1fr); gap: 0 18px; }
+.num { font: 800 1.1rem/1 var(--display); width: 40px; height: 40px; border-radius: 50%; background: var(--plum); color: #fff; display: grid; place-items: center; }
+h2 { font: 800 1.4rem/1.15 var(--display); margin: 6px 0 4px; letter-spacing: -.01em; }
+.hint { margin: 0 0 18px; color: var(--muted); font-size: .95rem; }
+.body { min-width: 0; }
+.opt { font: 600 .75rem var(--body); background: var(--tint); color: var(--plum-dark); padding: 2px 9px; border-radius: 999px; vertical-align: middle; margin-left: 6px; }
+
+.field { margin-bottom: 18px; }
+label.l { display: block; font-weight: 600; margin-bottom: 6px; }
+input[type="text"], input[type="tel"], select {
+  width: 100%; font: inherit; font-size: 1.05rem; padding: 13px 15px; border: 1.5px solid var(--line);
+  border-radius: 6px; background: var(--surface); color: var(--ink);
+}
+input:hover, select:hover { border-color: #b9b1cc; }
+:focus-visible { outline: 3px solid var(--rose); outline-offset: 2px; }
+.err { color: var(--bad); font-size: .88rem; font-weight: 600; margin: 5px 0 0; min-height: 1.2em; }
+
+/* Firma */
+.modes { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 12px; }
+.chip { font: 600 .92rem var(--body); border: 1.5px solid var(--line); background: var(--surface); color: var(--ink); border-radius: 999px; padding: 8px 16px; cursor: pointer; }
+.chip[aria-pressed="true"] { background: var(--plum); border-color: var(--plum); color: #fff; }
+.pad { position: relative; background: var(--surface); border: 2px dashed #b9b1cc; border-radius: 6px; }
+.pad canvas { display: block; width: 100%; aspect-ratio: 5 / 2; touch-action: none; cursor: crosshair; }
+.pad .ph { position: absolute; inset: 0; display: grid; place-items: center; color: #a39db8; pointer-events: none; font-size: .95rem; text-align: center; padding: 10px; }
+.pad.has .ph { display: none; }
+.tools { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 10px; align-items: center; }
+.link { font: 600 .92rem var(--body); background: none; border: 0; color: var(--plum); text-decoration: underline; cursor: pointer; padding: 6px 2px; }
+.file { display: none; margin-top: 10px; }
+.file.show { display: block; }
+
+.btn { font: 700 1rem var(--body); background: var(--plum); color: #fff; border: 0; border-radius: 6px; padding: 15px 30px; cursor: pointer; transition: background .15s; }
+.btn:hover:not(:disabled) { background: var(--plum-dark); }
+.btn:disabled { opacity: .55; cursor: not-allowed; }
+#msg { margin: 14px 0 0; font-weight: 600; min-height: 1.5em; }
+#msg.bad { color: var(--bad); }
+.done { display: none; margin-top: 14px; padding: 16px 18px; border-left: 5px solid var(--ok); background: var(--surface); border-radius: 0 6px 6px 0; }
+.done.show { display: block; }
+.done b { display: block; font: 800 1.1rem var(--display); }
+.count { margin: 18px 0 0; color: var(--muted); font-size: .92rem; }
+footer { background: var(--ink); color: #b8b3cc; font-size: .85rem; margin-top: 48px; }
+footer .wrap { padding-block: 18px; }
+
+@media (max-width: 560px) { .step { grid-template-columns: 1fr; gap: 10px; } }
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+</style>
+</head>
+<body>
+
+<div class="top"><div class="wrap">
+  <b>Hospital Distrital de Laredo</b>
+  <span>Servicio de Ginecología y Obstetricia</span>
+</div></div>
+
+<main>
+  <section class="hero wrap">
+    <h1>Registro de personal</h1>
+    <p>Completa tus datos. La firma es opcional: puedes guardar tu registro sin firmar.</p>
+  </section>
+
+  <form id="form" class="wrap" autocomplete="off" novalidate>
+    <section class="step">
+      <div class="num" aria-hidden="true">1</div>
+      <div class="body">
+        <h2>Tus datos</h2>
+        <p class="hint">Si te registras otra vez con el mismo DNI, se actualizan tus datos.</p>
+
+        <div class="field">
+          <label class="l" for="dni">DNI</label>
+          <input type="tel" id="dni" inputmode="numeric" maxlength="8" placeholder="8 dígitos" autocomplete="off" required>
+          <p class="err" id="e-dni"></p>
+        </div>
+        <div class="field">
+          <label class="l" for="nombre">Apellidos y nombres</label>
+          <input type="text" id="nombre" maxlength="120" placeholder="Ej. PÉREZ GARCÍA, MARÍA" autocomplete="name" required>
+          <p class="err" id="e-nombre"></p>
+        </div>
+        <div class="field">
+          <label class="l" for="condicion">Condición laboral</label>
+          <select id="condicion" required>
+            <option value="">Elige una opción</option>
+            <option>Doctor(a)</option>
+            <option>Int. Medicina</option>
+            <option>Licenciado(a) en enfermería</option>
+            <option>Int. Enfermería</option>
+            <option>Técnico(a) de enfermería</option>
+            <option>Obstetra</option>
+            <option>Otro</option>
+          </select>
+          <p class="err" id="e-condicion"></p>
+        </div>
+        <div class="field">
+          <label class="l" for="servicio">Servicio de procedencia</label>
+          <input type="text" id="servicio" maxlength="80" placeholder="Ej. Ginecología y Obstetricia" required>
+          <p class="err" id="e-servicio"></p>
+        </div>
+      </div>
+    </section>
+
+    <section class="step">
+      <div class="num" aria-hidden="true">2</div>
+      <div class="body">
+        <h2>Firma <span class="opt">Opcional</span></h2>
+        <p class="hint">Dibuja tu firma con el dedo o el mouse, o sube una imagen. Si no quieres firmar, salta este paso.</p>
+
+        <div class="modes" role="group" aria-label="Forma de firmar">
+          <button type="button" class="chip" id="m-draw" aria-pressed="true">Dibujar</button>
+          <button type="button" class="chip" id="m-up" aria-pressed="false">Subir imagen</button>
+        </div>
+        <div class="pad" id="pad">
+          <canvas id="cv" width="750" height="300" aria-label="Espacio para firmar"></canvas>
+          <div class="ph">Firma aquí</div>
+        </div>
+        <div class="file" id="fileBox">
+          <input type="file" id="file" accept="image/*" aria-label="Imagen de la firma">
+        </div>
+        <div class="tools"><button type="button" class="link" id="clear">Borrar firma</button></div>
+        <p class="err" id="e-firma"></p>
+      </div>
+    </section>
+
+    <section class="step">
+      <div class="num" aria-hidden="true">3</div>
+      <div class="body">
+        <h2>Guardar</h2>
+        <p class="hint">Revisa tus datos y guarda. No necesitas correo ni cuenta.</p>
+        <button class="btn" id="go" type="submit">Guardar registro</button>
+        <p id="msg" role="status" aria-live="polite"></p>
+        <div class="done" id="done"><b id="doneTitle"></b><span id="doneText"></span></div>
+        <p class="count" id="count"></p>
+      </div>
+    </section>
+  </form>
+</main>
+
+<footer><div class="wrap">Hospital Distrital de Laredo · Servicio de Ginecología y Obstetricia</div></footer>
+
+<script>
+(function () {
+  var URL_API = "https://fxuugixmaelscnetjjhj.supabase.co/rest/v1/rpc/";
+  var KEY = "sb_publishable_yqXtmyopzFg9jLdFXnGVFg_7DpZdFME";
+  var $ = function (id) { return document.getElementById(id); };
+  var form = $("form"), go = $("go"), msg = $("msg"), done = $("done");
+  var cv = $("cv"), ctx = cv.getContext("2d"), pad = $("pad");
+  var inked = false, drawing = false;
+
+  function rpc(fn, body) {
+    return fetch(URL_API + fn, {
+      method: "POST",
+      headers: { "apikey": KEY, "Authorization": "Bearer " + KEY, "Content-Type": "application/json" },
+      body: JSON.stringify(body || {})
+    }).then(function (r) {
+      if (!r.ok) return r.json().catch(function () { return {}; }).then(function (j) { throw new Error(j.message || "Error " + r.status); });
+      return r.text().then(function (t) { return t ? JSON.parse(t) : null; });
+    });
+  }
+  function clean(v) { return v.replace(/\s+/g, " ").trim(); }
+  function say(t, c) { msg.textContent = t; msg.className = c || ""; }
+  function setErr(k, t) { $("e-" + k).textContent = t || ""; }
+
+  /* DNI: solo dígitos */
+  $("dni").addEventListener("input", function () { this.value = this.value.replace(/\D/g, "").slice(0, 8); });
+
+  /* Firma: dibujo */
+  function style() { ctx.lineWidth = 4; ctx.lineCap = "round"; ctx.lineJoin = "round"; ctx.strokeStyle = "#111"; }
+  style();
+  function pos(e) {
+    var r = cv.getBoundingClientRect();
+    return { x: (e.clientX - r.left) * cv.width / r.width, y: (e.clientY - r.top) * cv.height / r.height };
+  }
+  function mark() { inked = true; pad.classList.add("has"); setErr("firma", ""); }
+  cv.addEventListener("pointerdown", function (e) {
+    drawing = true; cv.setPointerCapture(e.pointerId);
+    var p = pos(e); ctx.beginPath(); ctx.moveTo(p.x, p.y); ctx.lineTo(p.x + .01, p.y + .01); ctx.stroke(); mark();
+  });
+  cv.addEventListener("pointermove", function (e) {
+    if (!drawing) return; var p = pos(e); ctx.lineTo(p.x, p.y); ctx.stroke();
+  });
+  ["pointerup", "pointercancel"].forEach(function (n) { cv.addEventListener(n, function () { drawing = false; }); });
+
+  function clearPad() { ctx.clearRect(0, 0, cv.width, cv.height); inked = false; pad.classList.remove("has"); style(); }
+  $("clear").addEventListener("click", function () { clearPad(); $("file").value = ""; setErr("firma", ""); });
+
+  /* Firma: subir imagen (se ajusta al mismo lienzo) */
+  function mode(up) {
+    $("m-draw").setAttribute("aria-pressed", String(!up));
+    $("m-up").setAttribute("aria-pressed", String(up));
+    $("fileBox").classList.toggle("show", up);
+  }
+  $("m-draw").addEventListener("click", function () { mode(false); });
+  $("m-up").addEventListener("click", function () { mode(true); $("file").focus(); });
+  $("file").addEventListener("change", function () {
+    var f = this.files[0]; if (!f) return;
+    if (!/^image\//.test(f.type)) { setErr("firma", "Elige un archivo de imagen."); return; }
+    var img = new Image(), u = URL.createObjectURL(f);
+    img.onload = function () {
+      clearPad();
+      ctx.fillStyle = "#fff"; ctx.fillRect(0, 0, cv.width, cv.height);
+      var k = Math.min(cv.width / img.width, cv.height / img.height);
+      var w = img.width * k, h = img.height * k;
+      ctx.drawImage(img, (cv.width - w) / 2, (cv.height - h) / 2, w, h);
+      URL.revokeObjectURL(u); mark(); style();
+    };
+    img.onerror = function () { setErr("firma", "No se pudo leer esa imagen."); };
+    img.src = u;
+  });
+
+  /* Contador */
+  function loadCount() {
+    rpc("total_registrados").then(function (n) {
+      $("count").textContent = n ? n + (n === 1 ? " persona registrada." : " personas registradas.") : "";
+    }).catch(function () {});
+  }
+  loadCount();
+
+  form.addEventListener("submit", function (e) {
+    e.preventDefault();
+    done.classList.remove("show"); say("");
+    var dni = $("dni").value, nombre = clean($("nombre").value), cond = $("condicion").value, serv = clean($("servicio").value);
+    var bad = false;
+    ["dni", "nombre", "condicion", "servicio"].forEach(function (k) { setErr(k, ""); });
+    if (!/^\d{8}$/.test(dni)) { setErr("dni", "El DNI debe tener 8 dígitos."); bad = true; }
+    if (nombre.length < 5 || nombre.indexOf(" ") < 0) { setErr("nombre", "Escribe tus apellidos y nombres completos."); bad = true; }
+    if (!cond) { setErr("condicion", "Elige tu condición laboral."); bad = true; }
+    if (serv.length < 2) { setErr("servicio", "Escribe tu servicio de procedencia."); bad = true; }
+    if (bad) { var first = form.querySelector(".err:not(:empty)"); if (first) first.parentNode.querySelector("input,select").focus(); return; }
+
+    var firma = inked ? cv.toDataURL("image/png") : null;
+    go.disabled = true; say("Guardando…");
+    rpc("registrar_personal", { p_dni: dni, p_nombre: nombre, p_condicion: cond, p_servicio: serv, p_firma: firma })
+      .then(function (r) {
+        say("");
+        $("doneTitle").textContent = "Registro guardado";
+        $("doneText").textContent = nombre + ", tu registro quedó " + (r && r.con_firma ? "con firma." : "sin firma.") + " Si necesitas corregir algo, vuelve a registrarte con el mismo DNI.";
+        done.classList.add("show");
+        form.reset(); clearPad(); mode(false);
+        loadCount();
+        done.scrollIntoView({ behavior: "smooth", block: "center" });
+      })
+      .catch(function () { say("No se pudo guardar. Revisa tu conexión e inténtalo de nuevo.", "bad"); })
+      .then(function () { go.disabled = false; });
+  });
+})();
+</script>
+</body>
+</html>
