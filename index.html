@@ -129,7 +129,24 @@ footer .wrap { padding-block: 18px; }
         </div>
         <div class="field">
           <label class="l" for="servicio">Servicio de procedencia</label>
-          <input type="text" id="servicio" maxlength="80" placeholder="Ej. Ginecología y Obstetricia" required>
+          <select id="servicio" required>
+            <option value="">Elige un servicio</option>
+            <option>Ginecología y Obstetricia</option>
+            <option>Centro Obstétrico</option>
+            <option>Medicina</option>
+            <option>Consultorio Externo</option>
+            <option>Emergencia</option>
+            <option>Pediatría</option>
+            <option>Neonatología</option>
+            <option>Cirugía</option>
+            <option>Hospitalización</option>
+            <option>Laboratorio</option>
+            <option>Farmacia</option>
+            <option>Imagenología</option>
+            <option>Admisión y estadística</option>
+            <option value="__otro">Otro (escribir)</option>
+          </select>
+          <input type="text" id="servicioOtro" maxlength="80" placeholder="Escribe tu servicio" style="display:none;margin-top:10px" aria-label="Otro servicio">
           <p class="err" id="e-servicio"></p>
         </div>
       </div>
@@ -199,6 +216,13 @@ footer .wrap { padding-block: 18px; }
   /* DNI: solo dígitos */
   $("dni").addEventListener("input", function () { this.value = this.value.replace(/\D/g, "").slice(0, 8); });
 
+  /* Servicio: "Otro" muestra un campo de texto */
+  $("servicio").addEventListener("change", function () {
+    var otro = this.value === "__otro";
+    $("servicioOtro").style.display = otro ? "block" : "none";
+    if (otro) $("servicioOtro").focus();
+  });
+
   /* Firma: dibujo */
   function style() { ctx.lineWidth = 4; ctx.lineCap = "round"; ctx.lineJoin = "round"; ctx.strokeStyle = "#111"; }
   style();
@@ -254,13 +278,13 @@ footer .wrap { padding-block: 18px; }
   form.addEventListener("submit", function (e) {
     e.preventDefault();
     done.classList.remove("show"); say("");
-    var dni = $("dni").value, nombre = clean($("nombre").value), cond = $("condicion").value, serv = clean($("servicio").value);
+    var dni = $("dni").value, nombre = clean($("nombre").value), cond = $("condicion").value, serv = $("servicio").value === "__otro" ? clean($("servicioOtro").value) : $("servicio").value;
     var bad = false;
     ["dni", "nombre", "condicion", "servicio"].forEach(function (k) { setErr(k, ""); });
     if (!/^\d{8}$/.test(dni)) { setErr("dni", "El DNI debe tener 8 dígitos."); bad = true; }
     if (nombre.length < 5 || nombre.indexOf(" ") < 0) { setErr("nombre", "Escribe tus apellidos y nombres completos."); bad = true; }
     if (!cond) { setErr("condicion", "Elige tu condición laboral."); bad = true; }
-    if (serv.length < 2) { setErr("servicio", "Escribe tu servicio de procedencia."); bad = true; }
+    if (serv.length < 2) { setErr("servicio", "Elige tu servicio de procedencia."); bad = true; }
     if (bad) { var first = form.querySelector(".err:not(:empty)"); if (first) first.parentNode.querySelector("input,select").focus(); return; }
 
     var firma = inked ? cv.toDataURL("image/png") : null;
@@ -271,7 +295,7 @@ footer .wrap { padding-block: 18px; }
         $("doneTitle").textContent = "Registro guardado";
         $("doneText").textContent = nombre + ", tu registro quedó " + (r && r.con_firma ? "con firma." : "sin firma.") + " Si necesitas corregir algo, vuelve a registrarte con el mismo DNI.";
         done.classList.add("show");
-        form.reset(); clearPad(); mode(false);
+        form.reset(); clearPad(); mode(false); $("servicioOtro").style.display = "none";
         loadCount();
         done.scrollIntoView({ behavior: "smooth", block: "center" });
       })
